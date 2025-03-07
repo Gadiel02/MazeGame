@@ -12,18 +12,17 @@
 static void draw_rain(SDL_Renderer* renderer, const Player* player) {
     if (!player->rain_enabled) return;
 
-    SDL_SetRenderDrawColor(renderer, 200, 200, 255, 255); // Aumentar opacidad
+    SDL_SetRenderDrawColor(renderer, 200, 200, 255, 255);
     for (int i = 0; i < MAX_RAINDROPS; i++) {
         if (!player->raindrops[i].active) continue;
 
         int x = (int)player->raindrops[i].x;
         int y = (int)player->raindrops[i].y;
 
-        // Hacer las gotas más largas y gruesas
-        for (int dx = 0; dx < 2; dx++) {  // Hacer las gotas más gruesas
+        for (int dx = 0; dx < 2; dx++) {
             SDL_RenderDrawLine(renderer, 
                              x + dx, y, 
-                             x + dx, y + 5);  // Gotas más largas
+                             x + dx, y + 5);
         }
     }
 }
@@ -69,25 +68,16 @@ static void draw_wall_stripe(SDL_Renderer* renderer, int x, const RaycastHit* hi
     if (draw_start < 0) draw_start = 0;
     if (draw_end >= WINDOW_HEIGHT) draw_end = WINDOW_HEIGHT - 1;
 
+    // Render solid color walls
     Uint8 r, g, b;
     if (hit->orientation == 0) {
         r = 255; g = 100; b = 100;
     } else {
         r = 180; g = 70; b = 70;
     }
-
     float darkness = 1.0f / (1.0f + hit->distance * 0.2f);
-    r *= darkness;
-    g *= darkness;
-    b *= darkness;
-
-    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-    for(int i = -2; i <= 2; i++) {
-        int draw_x = x + i;
-        if(draw_x >= 0 && draw_x < WINDOW_WIDTH) {
-            SDL_RenderDrawLine(renderer, draw_x, draw_start, draw_x, draw_end);
-        }
-    }
+    SDL_SetRenderDrawColor(renderer, r * darkness, g * darkness, b * darkness, 255);
+    SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
 }
 
 // Draw minimap
@@ -110,6 +100,7 @@ void draw_minimap(SDL_Renderer* renderer, const Player* player) {
     float tile_width = (float)MINIMAP_SIZE / MAP_WIDTH;
     float tile_height = (float)MINIMAP_SIZE / MAP_HEIGHT;
 
+    // Draw walls
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
@@ -125,6 +116,7 @@ void draw_minimap(SDL_Renderer* renderer, const Player* player) {
         }
     }
 
+    // Draw player
     int player_x = MINIMAP_X + (int)(player->x * tile_width);
     int player_y = MINIMAP_Y + (int)(player->y * tile_height);
 
@@ -132,32 +124,11 @@ void draw_minimap(SDL_Renderer* renderer, const Player* player) {
     SDL_Rect player_dot = {player_x - 2, player_y - 2, 4, 4};
     SDL_RenderFillRect(renderer, &player_dot);
 
+    // Draw player direction
     int dir_x = player_x + (int)(cosf(player->angle) * 15);
     int dir_y = player_y + (int)(sinf(player->angle) * 15);
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
-    for(int i = -1; i <= 1; i++) {
-        for(int j = -1; j <= 1; j++) {
-            SDL_RenderDrawLine(renderer,
-                             player_x + i,
-                             player_y + j,
-                             dir_x + i,
-                             dir_y + j);
-        }
-    }
-}
-
-// Check collisions
-void check_collision(Player* player) {
-    float new_x = player->x + player->dx;
-    float new_y = player->y + player->dy;
-
-    if (!get_map_wall((int)new_x, (int)player->y)) {
-        player->x = new_x;
-    }
-    if (!get_map_wall((int)player->x, (int)new_y)) {
-        player->y = new_y;
-    }
+    SDL_RenderDrawLine(renderer, player_x, player_y, dir_x, dir_y);
 }
 
 // Render frame
@@ -234,4 +205,20 @@ void handle_player_input(SDL_Event* event, Player* player) {
     }
 
     check_collision(player);
+}
+
+void check_collision(Player* player) {
+    float new_x = player->x + player->dx;
+    float new_y = player->y + player->dy;
+
+    if (!get_map_wall((int)new_x, (int)player->y)) {
+        player->x = new_x;
+    }
+    if (!get_map_wall((int)player->x, (int)new_y)) {
+        player->y = new_y;
+    }
+}
+
+void init_game(SDL_Renderer* renderer) {
+    //No texture loading needed
 }

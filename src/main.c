@@ -50,3 +50,12 @@ int main(void) {
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
+    printf("Limpiando recursos...\n");
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    printf("Juego finalizado correctamente.\n");
+
+    return 0;  // <-- Asegura que main() termina correctamente
+}
+
